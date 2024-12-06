@@ -23,10 +23,13 @@ public:
 
     int score = 0;
 
+    std::vector<std::pair<int, int>> snakeBody;
+
     SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2), direction('d'), foodX(rand() % WIDTH), foodY(rand() % HEIGHT)
     {
         grid = std::vector<std::vector<char>>(HEIGHT, std::vector<char>(WIDTH, '.'));
-        grid[y][x] = 'O';
+        snakeBody.push_back(std::make_pair(x, y));
+        grid[snakeBody[0].second][snakeBody[0].first] = 'O';
         placeFood();
     }
 
@@ -109,6 +112,12 @@ private:
 
     void placeFood()
     {
+        do
+        {
+            foodX = rand() % WIDTH;
+            foodY = rand() % HEIGHT;
+        } while (grid[foodY][foodX] != '.');
+
         grid[foodY][foodX] = '@';
     }
 
@@ -125,28 +134,45 @@ private:
 
     void updatePlayerPosition()
     {
-        grid[y][x] = '.';
+        int newX = x;
+        int newY = y;
 
         switch (direction)
         {
         case 'w':
-            y = std::max(0, y - 1);
+            newY = std::max(0, y - 1);
             break;
         case 'a':
-            x = std::max(0, x - 1);
+            newX = std::max(0, x - 1);
             break;
         case 's':
-            y = std::min(HEIGHT - 1, y + 1);
+            newY = std::min(HEIGHT - 1, y + 1);
             break;
         case 'd':
-            x = std::min(WIDTH - 1, x + 1);
+            newX = std::min(WIDTH - 1, x + 1);
             break;
         }
 
-        checkIfOnFood();
-        placeFood();
+        snakeBody.push_back(std::make_pair(x, y));
 
-        grid[y][x] = 'O';
+        if (newX == foodX && newY == foodY)
+        {
+            score++;
+            placeFood();
+        }
+        else
+        {
+            grid[snakeBody.front().second][snakeBody.front().first] = '.';
+            snakeBody.erase(snakeBody.begin());
+        }
+
+        for (const auto &bodyPart : snakeBody)
+        {
+            grid[bodyPart.second][bodyPart.first] = 'O';
+        }
+
+        x = newX;
+        y = newY;
     }
 };
 
