@@ -2,9 +2,12 @@
 #include <vector>
 #include <termios.h>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
 
-const int WIDTH = 20;
-const int HEIGHT = 20;
+const int WIDTH = 15;
+const int HEIGHT = 15;
+const int GAME_SPEED_MS = 200;
 
 class SnakeGame
 {
@@ -12,8 +15,9 @@ public:
     std::vector<std::vector<char>> grid;
     char lastInput;
     int x, y;
+    char direction;
 
-    SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2)
+    SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2), direction('d')
     {
         grid = std::vector<std::vector<char>>(HEIGHT, std::vector<char>(WIDTH, '.'));
         grid[y][x] = 'O';
@@ -36,17 +40,18 @@ public:
     void run()
     {
         setRawMode(true);
+        std::thread inputThread(&SnakeGame::processInput, this);
+
         while (true)
         {
-            if (readInput())
-            {
-                if (lastInput == 'q')
-                    break;
-                updatePlayerPosition();
-                drawMap();
-            }
+            if (lastInput == 'q')
+                break;
+            updatePlayerPosition();
+            drawMap();
+            std::this_thread::sleep_for(std::chrono::milliseconds(GAME_SPEED_MS));
         }
         setRawMode(false);
+        inputThread.join();
     }
 
 private:
@@ -66,23 +71,39 @@ private:
         }
     }
 
-    bool readInput()
+    void processInput()
     {
-        if (read(STDIN_FILENO, &lastInput, 1) == 1)
+        while (true)
         {
-            if (lastInput == 'w' || lastInput == 'a' || lastInput == 's' || lastInput == 'd' || lastInput == 'q')
+            char input;
+            if (read(STDIN_FILENO, &input, 1) == 1)
             {
-                return true;
+                if (input == 'q')
+                {
+                    lastInput = 'q';
+                    break;
+                }
+
+                if (input == 'w' || input == 'a' || input == 's' || input == 'd')
+                {
+                    if (!((lastInput == 'w' && input == 's') ||
+                          (lastInput == 's' && input == 'w') ||
+                          (lastInput == 'a' && input == 'd') ||
+                          (lastInput == 'd' && input == 'a')))
+                    {
+                        lastInput = input;
+                        direction = input;
+                    }
+                }
             }
         }
-        return false;
     }
 
     void updatePlayerPosition()
     {
         grid[y][x] = '.';
 
-        switch (lastInput)
+        switch (direction)
         {
         case 'w':
             y = std::max(0, y - 1);
