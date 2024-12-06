@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <thread>
 #include <chrono>
+#include <stdlib.h>
+#include <time.h>
 
 const int WIDTH = 15;
 const int HEIGHT = 15;
@@ -17,10 +19,15 @@ public:
     int x, y;
     char direction;
 
-    SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2), direction('d')
+    int foodX, foodY;
+
+    int score = 0;
+
+    SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2), direction('d'), foodX(rand() % WIDTH), foodY(rand() % HEIGHT)
     {
         grid = std::vector<std::vector<char>>(HEIGHT, std::vector<char>(WIDTH, '.'));
         grid[y][x] = 'O';
+        placeFood();
     }
 
     void drawMap()
@@ -35,6 +42,7 @@ public:
             std::cout << "\n";
         }
         std::cout << "WASD movement | 'q' quit.\n";
+        std::cout << "Score: " << score << "\n";
     }
 
     void run()
@@ -99,6 +107,22 @@ private:
         }
     }
 
+    void placeFood()
+    {
+        grid[foodY][foodX] = '@';
+    }
+
+    void checkIfOnFood()
+    {
+        if (x == foodX && y == foodY)
+        {
+            grid[foodY][foodX] = '.';
+            foodX = rand() % WIDTH;
+            foodY = rand() % HEIGHT;
+            score++;
+        }
+    }
+
     void updatePlayerPosition()
     {
         grid[y][x] = '.';
@@ -119,12 +143,16 @@ private:
             break;
         }
 
+        checkIfOnFood();
+        placeFood();
+
         grid[y][x] = 'O';
     }
 };
 
 int main()
 {
+    srand(time(NULL));
     SnakeGame game;
     game.run();
     return 0;
