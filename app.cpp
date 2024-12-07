@@ -23,6 +23,8 @@ public:
 
     int score = 0;
 
+    bool inputProcessed = false;
+
     std::vector<std::pair<int, int>> snakeBody;
 
     SnakeGame() : lastInput(' '), x(WIDTH / 2), y(HEIGHT / 2), direction('d'), foodX(rand() % WIDTH), foodY(rand() % HEIGHT)
@@ -59,6 +61,7 @@ public:
                 break;
             updatePlayerPosition();
             drawMap();
+            inputProcessed = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(GAME_SPEED_MS));
         }
         setRawMode(false);
@@ -89,6 +92,9 @@ private:
             char input;
             if (read(STDIN_FILENO, &input, 1) == 1)
             {
+                if (inputProcessed)
+                    continue;
+
                 if (input == 'q')
                 {
                     lastInput = 'q';
@@ -104,6 +110,7 @@ private:
                     {
                         lastInput = input;
                         direction = input;
+                        inputProcessed = true;
                     }
                 }
             }
