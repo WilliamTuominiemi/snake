@@ -140,16 +140,16 @@ private:
         switch (direction)
         {
         case 'w':
-            newY = std::max(0, y - 1);
+            newY = (y - 1 + HEIGHT) % HEIGHT;
             break;
         case 'a':
-            newX = std::max(0, x - 1);
+            newX = (x - 1 + WIDTH) % WIDTH;
             break;
         case 's':
-            newY = std::min(HEIGHT - 1, y + 1);
+            newY = (y + 1) % HEIGHT;
             break;
         case 'd':
-            newX = std::min(WIDTH - 1, x + 1);
+            newX = (x + 1) % WIDTH;
             break;
         }
 
