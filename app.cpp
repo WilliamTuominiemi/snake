@@ -59,7 +59,11 @@ public:
         {
             if (lastInput == 'q')
                 break;
-            updatePlayerPosition();
+            if (!updatePlayerPosition())
+            {
+                std::cout << "Game Over! Final Score: " << score << "\n";
+                break;
+            }
             drawMap();
             inputProcessed = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(GAME_SPEED_MS));
@@ -139,7 +143,7 @@ private:
         }
     }
 
-    void updatePlayerPosition()
+    bool updatePlayerPosition()
     {
         int newX = x;
         int newY = y;
@@ -180,6 +184,13 @@ private:
 
         x = newX;
         y = newY;
+
+        if (grid[newY][newX] == 'O')
+        {
+            return false;
+        }
+
+        return true;
     }
 };
 
